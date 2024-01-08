@@ -2,6 +2,7 @@
 #define BNO055_I2C_LIB_H
 
 #include <cstdint>
+#include <vector>
 #include "i2c.h"
 
 
@@ -47,7 +48,7 @@ enum ReadRegisterAddress{
     kEulHeadingLsb = 0x1A,
     kEulHeadingMsb = 0x1B,
     kEulRollLsb = 0x1C,
-    kEulRollLsb = 0x1D,
+    kEulRollMsb = 0x1D,
     kEulPitchLsb = 0x1E,
     kEulPitchMsb = 0x1F,
     kQuatDataWLsb = 0x20,
@@ -60,10 +61,10 @@ enum ReadRegisterAddress{
     kQuatDataZMsb = 0x27,
     kLinearAccDataXLsb = 0x28,
     kLinearAccDataXMsb = 0x29,
-    kLinearAccDataXLsb = 0x2A,
-    kLinearAccDataXMsb = 0x2B,
-    kLinearAccDataXLsb = 0x2C,
-    kLinearAccDataXMsb = 0x2D,
+    kLinearAccDataYLsb = 0x2A,
+    kLinearAccDataYMsb = 0x2B,
+    kLinearAccDataZLsb = 0x2C,
+    kLinearAccDataZMsb = 0x2D,
     kGravityDataXLsb = 0x2E,
     kGravityDataXMsb = 0x2F,
     kGravityDataYLsb = 0x30,
@@ -110,19 +111,35 @@ enum WriteRegisterAddress {
     kMagRadiusMsb = 0x6A,
 };
 
+struct SensorData {
+    std::vector<double> accelerometer;  // x, y, z for accelerometer
+    std::vector<double> magnetometer;   // x, y, z for magnetometer
+    std::vector<double> gyro;           // x, y, z for gyro
+
+    SensorData() : accelerometer(3, 0.0), magnetometer(3, 0.0), gyro(3, 0.0) {}
+};
+
 class Bno055I2c {
 public:
     Bno055I2c(const char *i2c_bus);   // Constructor
     ~Bno055I2c();  // Destructor
 
     // Public methods for interacting with the BNO055 sensor
-    unsigned char ReadChipId();
+    uint8_t ReadChipId();
+
+    uint8_t ReadOperationMode();
+    bool SetOperationMode(uint8_t mode);
+    bool ReadImuData(SensorData *imu_data);
+    uint8_t ReadAccelerationConfig();
+    bool ChangePageId(uint8_t page_id);
 
 private:
+    int16_t ConvertToTwosComplement14Bit(const uint8_t msb, const uint8_t lsb);
     // Member variables
-    const uint8_t kDeviceAddress = 0x28;  // I2C address of the BNO055 sensor
-    const uint8_t kChipIdRegisterAddress = 0x00;
-    const uint8_t kChipId = 0xA0;
+    const uint8_t device_address_ = 0x28;  // I2C address of the BNO055 sensor
+    const uint8_t chip_id_ = 0xA0;
+    const double accelerometer_lsb_to_ms2_ = 0.009580662;   // Conversion of LSB to m/s^2 for +/-4g setting
+    const double gyro_lsb_to_dps_ = 0.061045402;
     I2CDevice i2c_device_;
 };
 
