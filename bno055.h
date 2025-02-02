@@ -1,5 +1,5 @@
-#ifndef BNO055_I2C_LIB_H
-#define BNO055_I2C_LIB_H
+#ifndef BNO055_H
+#define BNO055_H
 
 #include <cstdint>
 #include <vector>
@@ -43,10 +43,10 @@ struct SensorData {
     SensorData() : accelerometer(3, 0.0), magnetometer(3, 0.0), gyro(3, 0.0) {}
 };
 
-class Bno055I2c {
+class Bno055 {
 public:
-    Bno055I2c(const char *i2c_bus);
-    ~Bno055I2c();
+    Bno055(const char *i2c_bus);
+    ~Bno055();
 
     uint8_t ReadChipId();
     uint8_t ReadOperationMode();
@@ -67,4 +67,4 @@ private:
     const double gyro_lsb_to_dps_ = 0.061045402;
 };
 
-#endif // BNO055_I2C_LIB_H
+#endif // BNO055_H
