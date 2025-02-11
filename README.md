@@ -53,4 +53,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 Feel free to open issues or submit pull requests to improve the driver.
 
 ## Author
-[Ali Toghyan](https://github.com/toghyan)
+[Aliakbar Toghyan](https://github.com/toghyan)
