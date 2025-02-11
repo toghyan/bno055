@@ -10,6 +10,13 @@
 #include "bno055.h"
 
 
+/**
+ * @brief Constructor for the Bno055 class.
+ * 
+ * Opens the I2C bus and verifies the BNO055 chip ID.
+ * @param i2c_bus Path to the I2C bus device file.
+ * @throws I2COpenException if the bus cannot be opened or the chip ID is incorrect.
+ */
 Bno055::Bno055(const char *i2c_bus) {
     bus_fd_ = open(i2c_bus, O_RDWR);
     if (bus_fd_ < 0) {
@@ -34,12 +41,22 @@ Bno055::Bno055(const char *i2c_bus) {
     }
 }
 
+/**
+ * @brief Destructor for the Bno055 class.
+ * 
+ * Closes the I2C bus connection if open.
+ */
 Bno055::~Bno055() {
     if (bus_fd_ >= 0) {
         close(bus_fd_);
     }
 }
 
+/**
+ * @brief Reads the BNO055 chip ID.
+ * 
+ * @return The chip ID if successful, 0 otherwise.
+ */
 uint8_t Bno055::ReadChipId() {
     uint8_t buffer;
     if (ReadRegister(kChipId, &buffer, 1)) {
@@ -48,6 +65,11 @@ uint8_t Bno055::ReadChipId() {
     return 0;
 }
 
+/**
+ * @brief Reads the current operation mode of the BNO055.
+ * 
+ * @return The operation mode if successful, 0 otherwise.
+ */
 uint8_t Bno055::ReadOperationMode() {
     uint8_t buffer;
     if (ReadRegister(kOperationMode, &buffer, 1)) {
@@ -56,10 +78,29 @@ uint8_t Bno055::ReadOperationMode() {
     return 0;
 }
 
+/**
+ * @brief Sets the operation mode of the BNO055.
+ * 
+ * @param mode The operation mode to set.
+ * @return True if successful, false otherwise.
+ */
 bool Bno055::SetOperationMode(uint8_t mode) {
     return WriteRegister(kOperationMode, &mode, 1);
 }
 
+/**
+ * @brief Reads sensor data from the BNO055 and populates the provided SensorData structure.
+ * 
+ * This function reads raw acceleration, magnetometer, gyroscope, Euler angles, quaternion, 
+ * linear acceleration, gravity, and temperature data from the BNO055 sensor. The retrieved 
+ * data is then converted to standard units and stored in the provided SensorData structure.
+ * 
+ * @param[out] data Pointer to a SensorData structure where the retrieved sensor values will be stored.
+ * @return True if the data was successfully read and stored, false otherwise.
+ * 
+ * @note The function assumes the sensor is properly configured and in the correct operating mode.
+ *       If the I2C read operation fails, the function returns false.
+ */
 bool Bno055::ReadData(SensorData *data) {
     uint8_t buffer[data_buffer_read_size_];
     if (!ReadRegister(kAccDataXLsb, buffer, sizeof(buffer))) {
@@ -104,6 +145,11 @@ bool Bno055::ReadData(SensorData *data) {
     return true;
 }
 
+/**
+ * @brief Reads the acceleration configuration register.
+ * 
+ * @return The acceleration configuration value.
+ */
 uint8_t Bno055::ReadAccelerationConfig() {
     uint8_t buffer;
     if (ReadRegister(0x08, &buffer, 1)) {
@@ -112,10 +158,24 @@ uint8_t Bno055::ReadAccelerationConfig() {
     return 0;
 }
 
+/**
+ * @brief Changes the Page ID of the BNO055.
+ * 
+ * @param page_id The new page ID to set.
+ * @return True if successful, false otherwise.
+ */
 bool Bno055::ChangePageId(uint8_t page_id) {
     return WriteRegister(kPageId, &page_id, 1);
 }
 
+/**
+ * @brief Reads a register from the BNO055.
+ * 
+ * @param reg The register address to read from.
+ * @param data Pointer to the buffer to store read data.
+ * @param length Number of bytes to read.
+ * @return True if successful, false otherwise.
+ */
 int Bno055::ReadRegister(uint8_t reg, uint8_t *data, size_t length) {
     if (write(bus_fd_, &reg, 1) != 1) {
         return false;
@@ -126,6 +186,14 @@ int Bno055::ReadRegister(uint8_t reg, uint8_t *data, size_t length) {
     return true;
 }
 
+/**
+ * @brief Writes data to a register on the BNO055.
+ * 
+ * @param reg The register address to write to.
+ * @param data Pointer to the data buffer to write.
+ * @param length Number of bytes to write.
+ * @return True if successful, false otherwise.
+ */
 int Bno055::WriteRegister(uint8_t reg, const uint8_t *data, size_t length) {
     uint8_t buffer[length + 1];
     buffer[0] = reg;
